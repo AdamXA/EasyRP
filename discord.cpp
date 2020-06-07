@@ -4,6 +4,7 @@
 #include <limits.h>
 #include <stdio.h>
 #include <string>
+#include <chrono>
 
 #define DISCORD_DISABLE_IO_THREAD
 #include "discord_rpc.h"
@@ -65,8 +66,16 @@ void updatePresence(config_t *c) {
         return;
     }
 
-    if (c->start_time >= 0 && c->start_time != 0LL)
-        discordPresence.startTimestamp = (int64_t)c->start_time;
+    if (c->start_time >= 0 && c->start_time != 0LL) {
+        // Reset timer on launch instead of default behaviour that is commented out below.
+        std::chrono::system_clock::time_point tp = std::chrono::system_clock::now();
+        int64_t dtn = tp.time_since_epoch().count() *
+                      std::chrono::system_clock::period::num /
+                      std::chrono::system_clock::period::den;
+        printf("Setting current time as: %I64d", dtn);
+        discordPresence.startTimestamp = dtn;
+        //discordPresence.startTimestamp = (int64_t)c->start_time;
+	}
     if (c->end_time >= 0 && c->end_time != 0LL)
         discordPresence.endTimestamp = (int64_t)c->end_time;
 
